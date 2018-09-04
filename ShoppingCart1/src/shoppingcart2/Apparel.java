@@ -16,6 +16,14 @@ public class Apparel extends Merchandise{
     private Size size;
     private Date returnPeriod;
 
+    public Apparel(String GroceryItem, String GrocerySerialNumber, double parseDouble) {
+        super(GroceryItem, GrocerySerialNumber, parseDouble);
+    }
+
+    Apparel() {
+        super();
+    }
+
     public Date getReturnPeriod() {
         return returnPeriod;
     }
@@ -33,6 +41,6 @@ public class Apparel extends Merchandise{
     }
     
     public String toString(){
-        return size + " " + super.getItemName() + ": " + super.getPrice() + " x " + super.getQuantity();
+        return size + "                     " + super.getItemName() + "                     " + super.getPrice() + "                   " + super.getQuantity();
     }
 }

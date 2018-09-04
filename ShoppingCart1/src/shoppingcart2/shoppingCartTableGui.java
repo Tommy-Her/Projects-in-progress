@@ -11,6 +11,7 @@ import java.awt.GridLayout;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -23,17 +24,20 @@ import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
+import javax.swing.JTable;
 import javax.swing.JTextField;
 import static javax.swing.ListSelectionModel.MULTIPLE_INTERVAL_SELECTION;
 import javax.swing.SwingConstants;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.table.DefaultTableModel;
 /**
  *
  * @author vangu
  */
-public class shoppingCartGui extends JPanel{
+public class shoppingCartTableGui extends JPanel{
     
     private JList List;
     private DefaultListModel ListModel;
@@ -44,37 +48,38 @@ public class shoppingCartGui extends JPanel{
     private JLabel ItemNameLabel;
     private JLabel ItemPriceLabel;
     private JLabel ItemSerialNumberLabel;
+    private DefaultTableModel newTable;
+    private JTable table;
     
-    public shoppingCartGui(){
+    public shoppingCartTableGui(){
         super(new BorderLayout());
          /* First you need to create the Model that the list is going to be */
          ListModel = new DefaultListModel();
 
-         
          /* Now you can create the JList object with the Model as the argument. You are also 
          now able to edit the List to allow different settings and let how many ever
          elements be visible */
+         
+         /*
          List = new JList(ListModel);
          List.setSelectionMode(MULTIPLE_INTERVAL_SELECTION);
          List.setSelectedIndex(0);
          List.setVisibleRowCount(5);
+         */
+         
+         String[] columnNames = {"Name","Price","Serial Number"};
+         
+         newTable = new DefaultTableModel(columnNames,0);
+         
+         table = new JTable(newTable);
          
          /* adds the list to the scroll panel */
-         JScrollPane ScrollPanel = new JScrollPane(List);
+         JScrollPane ScrollPanel = new JScrollPane(table);
+         table.setFillsViewportHeight(true);
          
          /* adds the scroll panel to the frame */
          add(ScrollPanel, BorderLayout.CENTER);
-         
-         /*
-         ListModel2 = new DefaultListModel();
-         List2 = new JList(ListModel2);
-         List2.setSelectionMode(MULTIPLE_INTERVAL_SELECTION);
-         List2.setSelectedIndex(0);
-         List2.setVisibleRowCount(5);  
-         JScrollPane ScrollPanel2 = new JScrollPane(List2);
-         add(ScrollPanel2, BorderLayout.CENTER);
-         */
-         
+                  
          /* creating the button that allows users to add items to grocery list
          still needs to use java to check the list for conditions */
          
@@ -147,7 +152,7 @@ public class shoppingCartGui extends JPanel{
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         //Create and set up the content pane.
-        JComponent newContentPane = new shoppingCartGui();
+        JComponent newContentPane = new shoppingCartTableGui();
         newContentPane.setOpaque(true); //content panes must be opaque
         frame.setContentPane(newContentPane);
 
@@ -176,25 +181,24 @@ public class shoppingCartGui extends JPanel{
             //This method can be called only if
             //there's a valid selection
             //so go ahead and remove whatever's selected.
-            if(ListModel.getSize() == 0){
+            if(newTable.getRowCount() == 0){
                 Toolkit.getDefaultToolkit().beep();
                 return;
                 }
             
-            int index = List.getSelectedIndex();
-            ListModel.remove(index);
-
-            int size = ListModel.getSize();
+            int index = table.getSelectedRow();
+            int size = newTable.getRowCount();
+            newTable.removeRow(index);
+           
 
             //Select an index.
-                if (index == ListModel.getSize()) {
-                    //removed item in last position
-                    index--;
-                }
-
-                List.setSelectedIndex(index);
-                List.ensureIndexIsVisible(index);
-            
+            index--;
+            if(index < 0){
+                index++;
+            }
+            if(newTable.getRowCount() != 0){
+            table.setRowSelectionInterval(index, index);
+            }
         }
     }
     
@@ -213,10 +217,9 @@ public class shoppingCartGui extends JPanel{
             String GroceryItem = Item.getText();
             String GroceryPrice = ItemPrice.getText();
             String GrocerySerialNumber = ItemSerialNumber.getText();
-            Merchandise NewMerchandiseItem = null;
             try{
                 if(Double.valueOf(GroceryPrice) != null){
-                    NewMerchandiseItem = new Merchandise(GroceryItem, GrocerySerialNumber, Double.parseDouble(GroceryPrice));
+                    // just checks if groceryprice is a double
                 }
             }
             catch(NumberFormatException E) {
@@ -224,22 +227,12 @@ public class shoppingCartGui extends JPanel{
                 ItemPrice.setText("");
                 return;
             }
-            if(List.getSelectedIndex() == -1){
-                ListModel.add(0, NewMerchandiseItem);
-                Item.requestFocusInWindow();
-                Item.setText("");    
-                ItemPrice.setText("");
-                ItemSerialNumber.setText("");
-                List.setSelectedIndex(List.getSelectedIndex()+1);
-                return;
-            }
-            
-            ListModel.add(List.getSelectedIndex()+1, NewMerchandiseItem);
+            Object[] newItem = {GroceryItem,GroceryPrice,GrocerySerialNumber};
+            newTable.addRow(newItem);
             Item.requestFocusInWindow();
             Item.setText("");
             ItemPrice.setText("");
             ItemSerialNumber.setText("");
-            List.setSelectedIndex(List.getSelectedIndex()+1);
         }
 
         @Override

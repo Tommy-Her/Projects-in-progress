@@ -15,6 +15,18 @@ public class Merchandise {
     private String serialNumber;
     private double price = 0;
 
+    public Merchandise(String GroceryItem, String GrocerySerialNumber, double parseDouble) {
+
+        itemName = GroceryItem;
+        serialNumber = GrocerySerialNumber;
+        price = parseDouble;
+
+    }
+    
+    public Merchandise(){
+        
+    }
+
     public String getSerialNumber() {
         return serialNumber;
     }
@@ -58,7 +70,7 @@ public class Merchandise {
     }
     
     public String toString(){
-        return itemName + ": " + price + " x " + quantity;
+        return itemName + "                 " + price + "                   " + serialNumber;
     }
     
 }
