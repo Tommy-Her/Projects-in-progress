@@ -7,6 +7,7 @@ package shoppingcart2;
 
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -16,15 +17,20 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultListModel;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
+import javax.swing.JTabbedPane;
 import javax.swing.JTable;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import static javax.swing.ListSelectionModel.MULTIPLE_INTERVAL_SELECTION;
 import javax.swing.SwingConstants;
@@ -38,7 +44,7 @@ import javax.swing.table.DefaultTableModel;
  * @author vangu
  */
 public class shoppingCartTableGui extends JPanel{
-    
+    private static JFrame frame;
     private JList List;
     private DefaultListModel ListModel;
     private JTextField Item;
@@ -60,26 +66,31 @@ public class shoppingCartTableGui extends JPanel{
          now able to edit the List to allow different settings and let how many ever
          elements be visible */
          
-         /*
+
          List = new JList(ListModel);
          List.setSelectionMode(MULTIPLE_INTERVAL_SELECTION);
          List.setSelectedIndex(0);
          List.setVisibleRowCount(5);
-         */
+
          
          String[] columnNames = {"Name","Price","Serial Number"};
          
          newTable = new DefaultTableModel(columnNames,0);
          
          table = new JTable(newTable);
+
+         
+         
          
          /* adds the list to the scroll panel */
          JScrollPane ScrollPanel = new JScrollPane(table);
+         JScrollPane ScrollPane2 = new JScrollPane(List);
+         
          table.setFillsViewportHeight(true);
          
          /* adds the scroll panel to the frame */
-         add(ScrollPanel, BorderLayout.CENTER);
-                  
+         add(ScrollPanel, BorderLayout.NORTH);
+         
          /* creating the button that allows users to add items to grocery list
          still needs to use java to check the list for conditions */
          
@@ -100,6 +111,19 @@ public class shoppingCartTableGui extends JPanel{
          RemoveButton.setActionCommand("Remove Item");
          RemoveButton.addActionListener(removeListener);
          
+         JButton PrintButton = new JButton("Print Items");
+         PrintListener printListener = new PrintListener(PrintButton);
+         PrintButton.setEnabled(true);
+         PrintButton.setActionCommand("Print Items");
+         PrintButton.addActionListener(printListener);
+         
+         JButton ClearButton = new JButton("Clear log");
+         clearListener clearListener = new clearListener(ClearButton);
+         ClearButton.setEnabled(true);
+         ClearButton.setActionCommand("Clear logs");
+         ClearButton.addActionListener(clearListener);
+         
+         add(ScrollPane2, BorderLayout.EAST);
          Item = new JTextField(20);
          Item.addActionListener(addListener);
          
@@ -124,11 +148,11 @@ public class shoppingCartTableGui extends JPanel{
          ItemPriceLabel.setText("Item Price: ");
          ItemSerialNumberLabel.setText("Item Serial Number: ");
          
-         
+
          
          /* creating the panel where we attach our buttons to */
          JPanel Panel1 = new JPanel();
-         Panel1.setLayout(new GridLayout(2,4,5,5));
+         Panel1.setLayout(new GridLayout(6,2,5,5));
          Panel1.add(AddButton);
          Panel1.add(RemoveButton);
 
@@ -140,14 +164,27 @@ public class shoppingCartTableGui extends JPanel{
          Panel1.add(ItemSerialNumberLabel);
          Panel1.add(ItemSerialNumber);
          
-         /* adds the Panel to the frame */         
-         add(Panel1, BorderLayout.PAGE_END);
+         Panel1.add(PrintButton);
+         Panel1.add(ClearButton);
+         /* adds the Panel to the frame */  
+         JTextArea newTextArea = new JTextArea();
+         JPanel Panel3 = new JPanel();
+         Panel3.add(newTextArea);
+         JTabbedPane tabbedPane = new JTabbedPane();
+         tabbedPane.add("Shopping Cart",Panel3);
+         tabbedPane.add("Catalog", Panel1);
+         add(tabbedPane);
+         
+         // essentially what I have done is added all of the catalog section onto a tabbed pane that I created. It looks neater and easier to use
+         // I will later try to create the shopping cart section of the tabbed pane to allow for adding of items as well as quantities
+         // the above code pretty much just creates the catalog pane and doesn't touch into the shopping cart aspect of it yet
     }
     
     private static void createAndShowGUI() {
         //Create and set up the window.
-        JFrame frame = new JFrame("Tommy's Grocery List");
+        frame = new JFrame("Tommy's Grocery List");
         frame.setLocation(600,400);
+        frame.setPreferredSize(new Dimension(800,700));
         //frame.setLayout(new GridLayout(2,2,5,5));
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
@@ -171,6 +208,46 @@ public class shoppingCartTableGui extends JPanel{
         });
     }
 
+    class clearListener implements ActionListener{
+        public JButton button;
+         
+        public clearListener(JButton PrintButton){
+            this.button = PrintButton;
+        }
+        
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            if(ListModel.getSize()!= 0){
+                ListModel.clear();
+            }
+        }
+    }
+    
+    class PrintListener implements ActionListener{
+        public JButton button;
+         
+        public PrintListener(JButton PrintButton){
+            this.button = PrintButton;
+        }
+        
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            String toBePrinted = new String();
+            if(newTable.getRowCount() != 0){
+                for(int iterator1 = 0; iterator1 < newTable.getRowCount(); iterator1++){
+                    for(int iterator2 =  0; iterator2 < newTable.getColumnCount(); iterator2++){
+                        
+                        toBePrinted = toBePrinted + table.getValueAt(iterator1, iterator2) + " ";
+                    }
+                    toBePrinted += "\n";
+                    ListModel.add(0, toBePrinted);
+                    toBePrinted = "";
+                }
+            }
+        }
+        
+    }
+    
     class RemoveListener implements ActionListener {
         private JButton button;  
         
@@ -185,9 +262,12 @@ public class shoppingCartTableGui extends JPanel{
                 Toolkit.getDefaultToolkit().beep();
                 return;
                 }
-            
             int index = table.getSelectedRow();
             int size = newTable.getRowCount();
+            if(index > size || index < 0){
+                table.setRowSelectionInterval(0,0);
+                index = table.getSelectedRow();
+            }
             newTable.removeRow(index);
            
 
